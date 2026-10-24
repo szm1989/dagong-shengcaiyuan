@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>打工圣裁院 · 辞职裁决机</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:linear-gradient(180deg,#2b2b38,#1e1e28) fixed;color:#f0ead6;font-family:"PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* ============ 全局特效层 ============ */
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:90}
+@keyframes shakeK{0%{transform:translate(0,0)}25%{transform:translate(-6px,3px)}50%{transform:translate(5px,-4px)}75%{transform:translate(-4px,-2px)}100%{transform:translate(3px,2px)}}
+body.shaking{animation:shakeK .09s linear infinite}
+#muteBtn{position:fixed;top:12px;right:12px;z-index:99;background:#1c1c26;border:1px solid #3a3a48;color:#cfc7b0;padding:8px 14px;border-radius:999px;cursor:pointer;font-size:13px}
+#muteBtn:hover{border-color:#ffd23e;color:#ffd23e}
+
+/* ============ 四幕切换 ============ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.act{display:none;max-width:760px;margin:0 auto;padding:30px 20px 60px;min-height:100vh}
+.act.on{display:block;animation:fadeUp .5s ease}
+#act2{max-width:none;padding:0}
+#act2.on{display:block;animation:none}
+
+/* ============ 第零幕 · 封面 ============ */
+#act0{max-width:none;padding:0}
+#cover{position:relative;width:100%;min-height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(130% 100% at 50% -10%,#3d3550 0%,#262434 42%,#0b0b11 100%)}
+#rays{position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:repeating-conic-gradient(from 248deg at 50% -8vh,rgba(255,205,70,.10) 0deg 3.1deg,transparent 3.1deg 10.4deg);
+  -webkit-mask-image:radial-gradient(90% 85% at 50% -8vh,#000 28%,transparent 74%);
+  mask-image:radial-gradient(90% 85% at 50% -8vh,#000 28%,transparent 74%);
+  animation:rayGlow 5.5s ease-in-out infinite alternate}
+@keyframes rayGlow{from{opacity:.5}to{opacity:1}}
+#mist{position:absolute;left:0;right:0;bottom:0;height:40%;z-index:1;pointer-events:none;
+  background:radial-gradient(60% 100% at 18% 100%,rgba(120,110,165,.15),transparent 70%),
+  radial-gradient(52% 90% at 82% 100%,rgba(88,98,150,.13),transparent 70%),
+  linear-gradient(transparent,rgba(8,8,12,.88))}
+#bigSeal{position:absolute;left:50%;top:50%;width:min(76vmin,560px);z-index:1;color:rgba(210,40,30,.14);
+  transform:translate(-50%,-50%);animation:sealSpin 48s linear infinite;pointer-events:none}
+@keyframes sealSpin{from{transform:translate(-50%,-50%) rotate(0)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+#fx0{position:absolute;inset:0;z-index:5;pointer-events:none}
+.fcoin{position:absolute;bottom:-36px;z-index:2;color:#ffd23e;font-weight:900;opacity:0;pointer-events:none;
+  text-shadow:0 0 12px rgba(255,180,40,.75);animation:coinFloat linear infinite}
+@keyframes coinFloat{0%{transform:translateY(0) rotate(0)}10%{opacity:.85}82%{opacity:.55}100%{transform:translateY(-110vh) rotate(330deg);opacity:0}}
+.couplet{position:absolute;top:11%;z-index:3;writing-mode:vertical-rl;letter-spacing:9px;pointer-events:none;opacity:0;
+  font-family:KaiTi,"STKaiti","SimSun",serif;font-size:clamp(13px,2.3vw,21px);font-weight:700;color:#cfc08a;
+  padding:20px 9px;border:1px solid #4a4226;border-radius:10px;background:rgba(18,16,24,.62);
+  box-shadow:0 14px 40px rgba(0,0,0,.45),inset 0 0 16px rgba(255,190,60,.06)}
+.couplet.r{right:max(2.5%,14px)}
+.couplet.l{left:max(2.5%,14px)}
+.couplet.in{animation:fadeUp .9s ease forwards}
+#coverInner{position:relative;z-index:6;width:100%;max-width:860px;padding:0 16px;text-align:center}
+#plaque{position:relative;display:inline-block;opacity:0}
+#plaque.in{animation:plaqueIn .55s cubic-bezier(.22,1.5,.36,1) forwards}
+@keyframes plaqueIn{0%{opacity:0;transform:scale(2.8) rotate(-7deg)}55%{opacity:1}100%{opacity:1;transform:scale(1) rotate(-1.2deg)}}
+.plaque-frame{position:relative;padding:clamp(14px,3vw,26px) clamp(20px,4.5vw,46px) clamp(18px,3.4vw,30px);
+  border:4px solid #6b4f16;border-radius:16px;background:linear-gradient(180deg,#1b1826,#100e17);
+  box-shadow:inset 0 0 0 2px #33280e,0 26px 70px rgba(0,0,0,.65),0 0 70px rgba(255,170,0,.16)}
+.cover-title{font-size:clamp(34px,9vw,86px);letter-spacing:clamp(4px,1vw,12px)}
+#plaqueSeal{position:absolute;right:-20px;bottom:-22px;width:88px;height:88px;z-index:4;display:flex;align-items:center;justify-content:center;
+  border:6px solid rgba(215,42,32,.92);border-radius:50%;color:rgba(228,58,44,.95);mix-blend-mode:screen;pointer-events:none;
+  font-family:KaiTi,"STKaiti",serif;font-weight:900;font-size:28px;line-height:1.12;letter-spacing:2px;text-align:center;
+  transform:rotate(-14deg) scale(0);text-shadow:0 0 12px rgba(220,50,35,.65);
+  box-shadow:inset 0 0 18px rgba(215,42,32,.4),0 0 24px rgba(215,42,32,.3)}
+#plaqueSeal.on{animation:sealK .4s cubic-bezier(.3,1.6,.5,1) forwards}
+#coverSub{margin-top:24px;letter-spacing:5px;color:#8f8a76;font-size:clamp(13px,2.4vw,16px);opacity:0}
+#coverSub.in{animation:fadeUp .7s ease forwards}
+#coverSub b{color:#ffd23e;font-weight:700}
+#coverBtnWrap{max-width:430px;margin:30px auto 0;opacity:0}
+#coverBtnWrap.in{animation:fadeUp .7s ease forwards}
+#enterBtn{animation:btnPulse 1.7s ease-in-out infinite}
+@keyframes btnPulse{0%,100%{box-shadow:0 6px 0 #7a4b00,0 0 26px rgba(255,160,0,.45)}50%{box-shadow:0 6px 0 #7a4b00,0 0 46px rgba(255,175,0,.85)}}
+@media (max-width:640px){
+  #plaqueSeal{width:64px;height:64px;font-size:21px;right:-10px;bottom:-14px;border-width:5px}
+  .couplet{letter-spacing:5px;padding:12px 6px}
+}
+@media (prefers-reduced-motion:reduce){
+  #rays,#bigSeal,.fcoin,#enterBtn{animation:none}
+}
+
+/* ============ 第一幕 立案厅 ============ */
+.neon-title{font-family:KaiTi,"STKaiti","SimSun",serif;font-weight:900;font-size:clamp(40px,9vw,58px);color:#ffd23e;letter-spacing:10px;text-align:center;
+  text-shadow:0 0 6px #ffcc33,0 0 22px #ff8800,0 0 52px #ff5500}
+.tagline{text-align:center;color:#8f8a76;margin:10px 0 24px;letter-spacing:2px;font-size:14px}
+.paper-form{background:#272733;border:1px solid #3a3a48;border-radius:14px;padding:22px;display:grid;gap:18px}
+.f-label{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;color:#cfc7b0;margin-bottom:6px}
+.f-label small{color:#7d7867}
+output{color:#ffd23e;font-weight:700;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:#ff5533;height:24px;cursor:pointer}
+.boss-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.boss-grid label{cursor:pointer}
+.boss-grid input{display:none}
+.boss-grid span{display:block;text-align:center;padding:9px 2px;border:1px solid #3a3a48;border-radius:8px;font-size:13px;color:#b6b09c;background:#313140;transition:.15s}
+.boss-grid input:checked+span{background:#ff5533;border-color:#ff5533;color:#fff;box-shadow:0 0 14px rgba(255,85,51,.55);font-weight:700}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.trio .f-label{font-size:13px}
+textarea{width:100%;min-height:64px;resize:vertical;background:#23232e;border:1px solid #3a3a48;border-radius:8px;color:#f0ead6;padding:10px;font-size:14px;font-family:inherit}
+textarea:focus,input[type=range]:focus{outline:none;border-color:#ffd23e}
+.big-btn{display:block;width:100%;margin-top:20px;padding:16px;font-size:22px;font-weight:900;letter-spacing:8px;color:#1a0b00;
+  background:linear-gradient(#ffd23e,#ff9a1f);border:3px solid #7a4b00;border-radius:12px;cursor:pointer;
+  box-shadow:0 6px 0 #7a4b00,0 0 26px rgba(255,160,0,.45);transition:.1s}
+.big-btn:hover{filter:brightness(1.06)}
+.big-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #7a4b00}
+.disclaimer{text-align:center;color:#6f6a58;font-size:12px;margin-top:14px;letter-spacing:1px}
+.almanac{text-align:center;color:#9a8f6a;font-size:13px;margin-top:8px;letter-spacing:2px}
+
+/* ============ 第二幕 审理庭 ============ */
+.stage{position:relative;width:100%;height:100vh;background:#050507;overflow:hidden;display:block}
+#fx{position:absolute;inset:0;z-index:2}
+#term{position:absolute;left:8%;top:11%;width:84%;z-index:3;
+  font-family:"Cascadia Mono",Consolas,"Courier New",monospace;font-size:clamp(13px,2.4vw,16px);line-height:1.9;
+  color:#3dff9e;text-shadow:0 0 8px rgba(61,255,158,.7);white-space:pre-wrap}
+#bigArt{position:absolute;left:50%;top:50%;z-index:4;transform:translate(-50%,-50%);
+  font-family:KaiTi,"STKaiti","SimSun",serif;font-weight:900;font-size:clamp(90px,30vw,230px);letter-spacing:8px;
+  opacity:0;pointer-events:none;white-space:nowrap}
+#bigArt.show{animation:stampIn .32s cubic-bezier(.3,1.5,.5,1) forwards}
+#bigArt.ghost{animation:ghostK .75s ease-in-out 2}
+@keyframes stampIn{from{opacity:0;transform:translate(-50%,-50%) scale(3.2) rotate(-18deg)}to{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-8deg)}}
+@keyframes ghostK{0%,100%{transform:translate(-50%,-50%) scale(1) rotate(-8deg)}50%{transform:translate(-50%,-50%) scale(1.35) rotate(-4deg)}}
+#scan{position:absolute;inset:0;z-index:5;pointer-events:none;opacity:0;transition:opacity .3s;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.4) 0 2px,transparent 2px 4px)}
+#scan.on{opacity:1;animation:flickK .14s steps(2) infinite}
+@keyframes flickK{0%{filter:brightness(1)}50%{filter:brightness(.7)}}
+#mystery{position:absolute;left:50%;top:50%;z-index:6;transform:translate(-50%,-50%);
+  color:#8f96a8;font-size:clamp(16px,4vw,26px);letter-spacing:12px;opacity:0;transition:opacity .5s;white-space:nowrap}
+#mystery.on{opacity:.9}
+
+/* ============ 第三幕 宣判堂 ============ */
+.sec-title{font-family:KaiTi,"STKaiti",serif;font-size:26px;color:#ffd23e;letter-spacing:6px;text-align:center;margin-bottom:16px;
+  text-shadow:0 0 12px rgba(255,160,0,.5)}
+.verdict-paper{position:relative;background:#f5efdc;color:#2b2117;font-family:KaiTi,"STKaiti","SimSun",serif;
+  padding:34px 30px 44px;border-radius:4px;border:2px solid #c9b98a;outline:6px double #b39b62;outline-offset:-14px;
+  box-shadow:0 24px 70px rgba(0,0,0,.65)}
+@keyframes dropK{from{transform:translateY(-110vh) rotate(2deg)}to{transform:none}}
+.verdict-paper.drop{animation:dropK .6s cubic-bezier(.2,.9,.3,1.15)}
+.vp-head h2{font-size:32px;letter-spacing:10px;text-align:center;color:#8c1f14}
+.vp-sub{margin-top:6px;text-align:center;font-size:20px;letter-spacing:14px;color:#4a3a26;border-bottom:3px double #b39b62;padding-bottom:12px}
+.vp-case{font-size:13px;text-align:right;color:#7a6a4f;margin-top:8px}
+.vp-body{margin-top:12px;font-size:16.5px;line-height:1.95}
+.vp-body h4{margin:16px 0 6px;color:#8c1f14;font-size:17px;letter-spacing:3px}
+.vp-body ul{padding-left:1.4em}
+.vp-body b{color:#8c1f14}
+.vp-body .sec{opacity:0;transform:translateY(10px);transition:.45s ease}
+.vp-body .sec.shown{opacity:1;transform:none}
+.vp-ruling{font-size:30px;font-weight:900;letter-spacing:5px;margin:8px 0 10px;color:#2b2117}
+.vp-idx{display:inline-block;background:#8c1f14;color:#f5efdc;padding:3px 14px;border-radius:6px;font-size:14px;letter-spacing:1px;margin-top:6px;font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+.vp-foot{margin-top:18px;padding-top:10px;border-top:1px dashed #b39b62;font-size:13px;color:#7a6a4f;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.vp-stamp{position:absolute;right:22px;bottom:76px;width:132px;height:132px;border:7px solid rgba(210,40,30,.85);border-radius:50%;
+  color:rgba(210,40,30,.9);display:flex;align-items:center;justify-content:center;text-align:center;
+  font-size:30px;font-weight:900;line-height:1.2;letter-spacing:2px;transform:rotate(-14deg) scale(0);mix-blend-mode:multiply;pointer-events:none}
+.vp-stamp.on{animation:sealK .35s cubic-bezier(.3,1.6,.5,1) forwards}
+@keyframes sealK{from{transform:rotate(-14deg) scale(2.6)}to{transform:rotate(-14deg) scale(1)}}
+
+/* ============ 第四幕 结案处 ============ */
+#poster{width:min(420px,100%);display:block;margin:14px auto;border:1px solid #333;border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0 30px}
+.btn-row button{padding:14px;font-size:16px;font-weight:700;letter-spacing:2px;border-radius:10px;cursor:pointer;transition:.12s}
+#dlPoster{background:linear-gradient(#ffd23e,#ff9a1f);border:2px solid #7a4b00;color:#1a0b00;box-shadow:0 4px 0 #7a4b00}
+#again{background:#23232e;border:2px solid #3a3a48;color:#f0ead6;box-shadow:0 4px 0 #14141c}
+.btn-row button:active{transform:translateY(3px);box-shadow:none}
+.diary{background:#25252f;border:1px solid #3a3a48;border-radius:14px;padding:18px}
+.diary h3{font-size:15px;color:#cfc7b0;letter-spacing:3px;margin-bottom:12px}
+.d-item{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px dashed #2a2a35;font-size:13px}
+.d-item:last-child{border-bottom:none}
+.d-date{color:#7d7867;font-variant-numeric:tabular-nums;flex:0 0 88px}
+.d-badge{flex:0 0 auto;padding:2px 10px;border-radius:999px;font-weight:700;font-size:12px;color:#0b0b10}
+.d-quote{flex:1;color:#b6b09c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.d-again{flex:0 0 auto;background:none;border:1px solid #3a3a48;color:#8f8a76;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px}
+.d-again:hover{border-color:#ffd23e;color:#ffd23e}
+.d-empty{color:#6f6a58;font-size:13px;text-align:center;padding:10px 0}
+
+@media (max-width:600px){
+  .boss-grid{grid-template-columns:repeat(3,1fr)}
+  .trio{grid-template-columns:1fr}
+  .verdict-paper{padding:26px 18px 38px}
+  .vp-stamp{width:104px;height:104px;font-size:24px;bottom:60px;right:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  body.shaking{animation:none}
+  #scan.on{animation:none}
+}
+</style>
+</head>
+<body>
+<div id="flash"></div>
+<button id="muteBtn">音效：开</button>
+
+<!-- ============ 第零幕 · 封面 ============ -->
+<section id="act0" class="act on">
+  <div id="cover">
+    <div id="rays"></div>
+    <div id="mist"></div>
+    <svg id="bigSeal" viewBox="0 0 220 220" aria-hidden="true">
+      <defs><path id="sealArc" d="M110,110 m -80,0 a80,80 0 1,1 160,0 a80,80 0 1,1 -160,0"/></defs>
+      <circle cx="110" cy="110" r="100" fill="none" stroke="currentColor" stroke-width="5"/>
+      <circle cx="110" cy="110" r="60" fill="none" stroke="currentColor" stroke-width="2.5"/>
+      <text fill="currentColor" font-size="16.5" letter-spacing="5.5" font-family="KaiTi,STKaiti,serif" font-weight="700">
+        <textPath href="#sealArc">天庭驻人间人事仲裁庭 · 圣裁院印 · 立案在册 ·</textPath>
+      </text>
+      <text x="110" y="136" text-anchor="middle" fill="currentColor" font-size="62" font-weight="900" font-family="KaiTi,STKaiti,serif">審</text>
+    </svg>
+    <canvas id="fx0"></canvas>
+    <aside class="couplet r" aria-hidden="true">老板画饼 · 本庭来切</aside>
+    <aside class="couplet l" aria-hidden="true">冤种跑路 · 圣裁放行</aside>
+    <div id="coverInner">
+      <div id="plaque">
+        <div class="plaque-frame">
+          <h1 class="neon-title cover-title">打工圣裁院</h1>
+          <div id="plaqueSeal"><span>开<br>庭</span></div>
+        </div>
+      </div>
+      <p id="coverSub">—— <b>天庭驻人间</b> · 人事仲裁庭 · 辞职裁决机 ——</p>
+      <div id="coverBtnWrap">
+        <button id="enterBtn" class="big-btn">击 鼓 升 堂</button>
+        <p class="disclaimer" style="letter-spacing:2px">建议开声音 —— 惊堂木已就位，天雷正在装填</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 第一幕 · 立案厅 ============ -->
+<section id="act1" class="act">
+  <h1 class="neon-title">打工圣裁院</h1>
+  <p class="tagline">—— 天庭驻人间人事仲裁庭</p>
+  <div class="paper-form">
+    <div>
+      <div class="f-label"><span>月薪</span><output id="vSalary">¥12,000</output></div>
+      <input type="range" id="salary" min="3000" max="80000" step="500" value="12000">
+    </div>
+    <div>
+      <div class="f-label"><span>工作城市</span><small>用于时薪人间标定</small></div>
+      <div class="boss-grid" style="grid-template-columns:repeat(3,1fr)">
+        <label><input type="radio" name="city" value="1" checked><span>一线城市</span></label>
+        <label><input type="radio" name="city" value="2"><span>新一线</span></label>
+        <label><input type="radio" name="city" value="3"><span>二三线</span></label>
+      </div>
+    </div>
+    <div>
+      <div class="f-label"><span>通勤单程</span><output id="vCommute">1.0 小时</output></div>
+      <input type="range" id="commute" min="0" max="3" step="0.25" value="1">
+    </div>
+    <div>
+      <div class="f-label"><span>日均加班</span><output id="vOt">1.5 小时</output></div>
+      <input type="range" id="ot" min="0" max="6" step="0.5" value="1.5">
+    </div>
+    <div>
+      <div class="f-label"><span>心情指数</span><output id="vMood">50 / 100</output></div>
+      <input type="range" id="mood" min="0" max="100" step="5" value="50">
+    </div>
+    <div>
+      <div class="f-label"><span>老板类型</span><small>本庭将鉴定其饼图层厚度</small></div>
+      <div class="boss-grid">
+        <label><input type="radio" name="boss" value="0" checked><span>画饼型</span></label>
+        <label><input type="radio" name="boss" value="1"><span>PUSH型</span></label>
+        <label><input type="radio" name="boss" value="2"><span>甩锅型</span></label>
+        <label><input type="radio" name="boss" value="3"><span>佛系型</span></label>
+        <label><input type="radio" name="boss" value="4"><span>人间清醒</span></label>
+      </div>
+    </div>
+    <div>
+      <div class="f-label"><span>成长空间自评</span><output id="vGrow">50 / 100</output></div>
+      <input type="range" id="grow" min="0" max="100" step="5" value="50">
+    </div>
+    <div>
+      <div class="f-label"><span>公司前景自评</span><output id="vProspect">50 / 100</output></div>
+      <input type="range" id="prospect" min="0" max="100" step="5" value="50">
+    </div>
+    <div>
+      <div class="f-label"><span>手上 offer 月薪</span><output id="vOffer">没有（0）</output></div>
+      <input type="range" id="offer" min="0" max="80000" step="500" value="0">
+    </div>
+    <div>
+      <div class="f-label"><span>你在乎什么</span><small>权重由你定，判决由天定</small></div>
+      <div class="trio">
+        <div><div class="f-label"><span>搞钱</span><output id="vGq">50</output></div><input type="range" id="gq" min="0" max="100" step="5" value="50"></div>
+        <div><div class="f-label"><span>躺平</span><output id="vTp">50</output></div><input type="range" id="tp" min="0" max="100" step="5" value="50"></div>
+        <div><div class="f-label"><span>发展</span><output id="vFz">50</output></div><input type="range" id="fz" min="0" max="100" step="5" value="50"></div>
+      </div>
+    </div>
+    <div>
+      <div class="f-label"><span>最近一次被气到的瞬间</span><small>选填，将记入卷宗</small></div>
+      <textarea id="rant" maxlength="60" placeholder="例：周五晚 8 点，老板让我重做第 8 版 PPT……"></textarea>
+    </div>
+  </div>
+  <button id="startBtn" class="big-btn">呈 上 公 堂 ， 开 审 ！</button>
+  <p class="almanac" id="almanac"></p>
+  <p class="disclaimer">仅供娱乐 · 本庭不承担任何人生后果 · 人生大事请自己拿主意</p>
+</section>
+
+<!-- ============ 第二幕 · 审理庭 ============ -->
+<section id="act2" class="act">
+  <div class="stage">
+    <canvas id="fx"></canvas>
+    <div id="term"></div>
+    <div id="bigArt"></div>
+    <div id="scan"></div>
+    <div id="mystery">天 机 不 可 泄 露 …</div>
+  </div>
+</section>
+
+<!-- ============ 第三幕 · 宣判堂 ============ -->
+<section id="act3" class="act">
+  <h2 class="sec-title">宣 判 堂</h2>
+  <div class="verdict-paper" id="paper">
+    <div class="vp-head">
+      <h2>打工圣裁院</h2>
+      <div class="vp-sub">终 审 判 决 书</div>
+      <div class="vp-case" id="caseNo"></div>
+    </div>
+    <div class="vp-body" id="vpBody"></div>
+    <div class="vp-stamp" id="seal"><span>圣裁<br>院印</span></div>
+  </div>
+  <button id="toAct4" class="big-btn">领 取 判 决 海 报 →</button>
+</section>
+
+<!-- ============ 第四幕 · 结案处 ============ -->
+<section id="act4" class="act">
+  <h2 class="sec-title">结 案 处</h2>
+  <canvas id="poster" width="750" height="1000"></canvas>
+  <div class="btn-row">
+    <button id="dlPoster">下载判决海报</button>
+    <button id="again">再 判 一 次</button>
+  </div>
+  <div class="diary">
+    <h3>决 策 日 记 · 存 档 于 人 间</h3>
+    <div id="diaryList"></div>
+  </div>
+  <p class="disclaimer" style="margin-top:20px">海报已对薪资匿名化 · 请放心转发并 @ 你的冤种同事</p>
+</section>
+
+<script>
+'use strict';
+/* ==================== 小工具 ==================== */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const rand=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const fmt=n=>Number(n).toLocaleString('zh-CN');
+function dayHash(){const d=new Date();return d.getFullYear()*372+(d.getMonth()+1)*31+d.getDate();}
+function dateStr(){const d=new Date();return `${d.getFullYear()} 年 ${d.getMonth()+1} 月 ${d.getDate()} 日`;}
+
+/* ==================== 音效（Web Audio 现场合成，零素材） ==================== */
+let AC=null,muted=false;
+function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC;}
+function noiseBuf(c,dur){const n=Math.floor(c.sampleRate*dur),b=c.createBuffer(1,n,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;return b;}
+function envG(g,t,peak,dec){g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+0.012);g.gain.exponentialRampToValueAtTime(0.0001,t+dec);}
+function sGavel(){if(muted)return;const c=ac(),t=c.currentTime;
+  const s=c.createBufferSource();s.buffer=noiseBuf(c,0.12);
+  const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=900;
+  const g=c.createGain();envG(g,t,0.9,0.14);s.connect(f);f.connect(g);g.connect(c.destination);s.start(t);
+  const o=c.createOscillator();o.type='triangle';o.frequency.setValueAtTime(220,t);o.frequency.exponentialRampToValueAtTime(80,t+0.1);
+  const g2=c.createGain();envG(g2,t,0.5,0.12);o.connect(g2);g2.connect(c.destination);o.start(t);o.stop(t+0.16);}
+function sThunder(){if(muted)return;const c=ac(),t=c.currentTime;
+  const s=c.createBufferSource();s.buffer=noiseBuf(c,1.5);
+  const f=c.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(500,t);f.frequency.exponentialRampToValueAtTime(60,t+1.2);
+  const g=c.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(0.65,t+0.12);g.gain.exponentialRampToValueAtTime(0.0001,t+1.4);
+  s.connect(f);f.connect(g);g.connect(c.destination);s.start(t);}
+function sDrum(){if(muted)return;const c=ac(),t=c.currentTime;
+  const o=c.createOscillator();o.type='sine';o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(40,t+0.28);
+  const g=c.createGain();envG(g,t,0.85,0.3);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+0.32);}
+function sStamp(){if(muted)return;const c=ac(),t=c.currentTime;
+  const o=c.createOscillator();o.type='triangle';o.frequency.setValueAtTime(120,t);o.frequency.exponentialRampToValueAtTime(55,t+0.16);
+  const g=c.createGain();envG(g,t,0.95,0.18);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+0.2);
+  const s=c.createBufferSource();s.buffer=noiseBuf(c,0.04);
+  const g2=c.createGain();envG(g2,t,0.3,0.05);s.connect(g2);g2.connect(c.destination);s.start(t);}
+function sCoin(){if(muted)return;const c=ac(),t=c.currentTime;
+  [1318,1760].forEach((fr,i)=>{const o=c.createOscillator();o.type='square';o.frequency.value=fr;
+    const g=c.createGain();envG(g,t+i*0.03,0.1,0.09);o.connect(g);g.connect(c.destination);o.start(t+i*0.03);o.stop(t+i*0.03+0.1);});}
+function sTick(){if(muted)return;const c=ac(),t=c.currentTime;
+  const o=c.createOscillator();o.type='square';o.frequency.value=1500;
+  const g=c.createGain();envG(g,t,0.05,0.02);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+0.03);}
+
+$('#muteBtn').addEventListener('click',()=>{muted=!muted;$('#muteBtn').textContent=muted?'音效：关':'音效：开';});
+
+/* ==================== 全局特效：白闪 / 震屏 ==================== */
+const flashEl=$('#flash');
+function flash(op=0.9,dur=220){flashEl.style.transition='none';flashEl.style.opacity=op;
+  void flashEl.offsetWidth;flashEl.style.transition=`opacity ${dur}ms ease`;flashEl.style.opacity=0;}
+function shake(dur=500){document.body.classList.add('shaking');setTimeout(()=>document.body.classList.remove('shaking'),dur);}
+
+/* ==================== Canvas 特效：雷电 / 金币 ==================== */
+const fxC=$('#fx'),fxX=fxC.getContext('2d');
+function fxSize(){fxC.width=innerWidth;fxC.height=innerHeight;}
+addEventListener('resize',fxSize);fxSize();
+function fxClear(){fxX.clearRect(0,0,fxC.width,fxC.height);}
+function boltOn(c,x){
+  const W=c.width,H=c.height;x.clearRect(0,0,W,H);
+  const seg=(x0)=>{const pts=[[x0,0]];let px=x0,py=0;
+    while(py<H*0.55){py+=rand(30,70);px+=rand(-46,46);pts.push([px,py]);}return pts;};
+  const stroke=pts=>{x.beginPath();x.moveTo(pts[0][0],pts[0][1]);for(const p of pts)x.lineTo(p[0],p[1]);x.stroke();};
+  x.lineJoin='round';x.lineCap='round';
+  for(let k=0;k<2;k++){
+    const main=seg(rand(W*0.2,W*0.8));
+    x.shadowColor='#9df3ff';x.shadowBlur=26;x.strokeStyle='rgba(255,255,255,.95)';x.lineWidth=3.5;stroke(main);
+    x.lineWidth=1.4;x.strokeStyle='rgba(160,210,255,.8)';stroke(main);
+    const b0=main[Math.floor(main.length*rand(0.3,0.6))];const br=[[b0[0],b0[1]]];
+    let bx=b0[0],by=b0[1];for(let i=0;i<4;i++){bx+=rand(-70,20);by+=rand(24,56);br.push([bx,by]);}
+    x.lineWidth=1.6;x.strokeStyle='rgba(200,235,255,.85)';stroke(br);
+    x.shadowBlur=0;
+  }
+  setTimeout(()=>x.clearRect(0,0,c.width,c.height),130);
+}
+function drawBolt(){boltOn(fxC,fxX);}
+function coin(x,y,r,rot){fxX.save();fxX.translate(x,y);fxX.rotate(rot);
+  fxX.fillStyle='#ffd23e';fxX.strokeStyle='#8a5a00';fxX.lineWidth=2;
+  fxX.beginPath();fxX.arc(0,0,r,0,7);fxX.fill();fxX.stroke();
+  fxX.fillStyle='#8a5a00';fxX.font=`bold ${Math.round(r)}px sans-serif`;fxX.textAlign='center';fxX.textBaseline='middle';
+  fxX.fillText('¥',0,1);fxX.restore();}
+function coinRain(dur=1700){
+  const W=fxC.width,H=fxC.height,ps=[],t0=performance.now();
+  (function loop(t){
+    fxX.clearRect(0,0,W,H);
+    if(t-t0<dur&&ps.length<130)for(let i=0;i<3;i++)ps.push({x:rand(0,W),y:-24,vy:rand(4,9),vx:rand(-1.2,1.2),r:rand(9,17),rot:rand(0,6),vr:rand(-0.14,0.14)});
+    for(let i=ps.length-1;i>=0;i--){const p=ps[i];p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;
+      if(p.y>H+30){ps.splice(i,1);continue;}coin(p.x,p.y,p.r,p.rot);}
+    if(ps.length||t-t0<dur)requestAnimationFrame(loop);else fxClear();
+  })(t0);
+}
+function coinPile(dur=1700){
+  const W=fxC.width,H=fxC.height,baseY=H*0.82,r=Math.min(16,W/60);
+  const bw=r*1.7,nB=Math.max(9,Math.floor(Math.min(W*0.6,520)/bw)),x0=W/2-(nB-1)*bw/2;
+  const hs=new Array(nB).fill(0),queue=[];
+  const need=Math.min(nB*6,80);
+  for(let i=0;i<need;i++){let bi;do{bi=Math.floor(rand(0,nB));}while(hs[bi]>6);queue.push(bi);}
+  const ps=[],t0=performance.now();let last=0;
+  (function loop(t){
+    fxX.clearRect(0,0,W,H);
+    if(queue.length&&t-last>Math.max(10,dur/need)){last=t;const bi=queue.shift();
+      const ty=baseY-hs[bi]*r*1.5-r;hs[bi]++;if(hs[bi]>6)hs[bi]=6;
+      ps.push({x:x0+bi*bw,y:-20,ty,vy:rand(7,12),r,rot:rand(0,6)});}
+    let alive=false;
+    for(const p of ps){if(p.y<p.ty){p.y=Math.min(p.ty,p.y+p.vy);alive=true;}coin(p.x,p.y,p.r,p.rot);}
+    if(queue.length||alive||t-t0<dur+400)requestAnimationFrame(loop);
+  })(t0);
+}
+
+/* ==================== 终端打字 / 大字报 ==================== */
+const termEl=$('#term'),bigEl=$('#bigArt'),scanEl=$('#scan'),mystEl=$('#mystery');
+async function typeLine(text,speed=20){for(const ch of text){termEl.textContent+=ch;if(!muted&&Math.random()<0.4)sTick();await sleep(speed);}termEl.textContent+='\n';}
+function showBig(text,color){bigEl.textContent=text;bigEl.style.color=color;
+  bigEl.style.textShadow=`0 0 10px ${color},0 0 34px ${color},0 0 80px ${color}`;
+  bigEl.classList.remove('show','ghost');void bigEl.offsetWidth;bigEl.classList.add('show');}
+
+/* ==================== 判决引擎 ==================== */
+const BOSS=[{n:'画饼型',s:25},{n:'PUSH型',s:30},{n:'甩锅型',s:35},{n:'佛系型',s:60},{n:'人间清醒型',s:88}];
+const CITY={1:15000,2:9000,3:6000};
+const GRADES=[
+  {name:'强烈建议苟住',stamp:'苟',color:'#3dff9e'},
+  {name:'苟住观察',stamp:'观',color:'#ffd23e'},
+  {name:'天意难测',stamp:'玄',color:'#b48cff'},
+  {name:'建议跑路',stamp:'跑',color:'#ff8833'},
+  {name:'立刻跑路',stamp:'溜',color:'#ff4455'}
+];
+const ADVICE=[
+  '把年终奖发放日贴在工位显眼处，同时对简历进行「冷更新」——只改不发，静待时机。',
+  '本周内递交涨薪或调岗申请试水；若两周无回音，自动升级为「建议跑路」档。',
+  '更新简历、暗中面试，让市场先报个价；拿得到更好的，再去跟老板摊牌。',
+  '本周更新简历并约满三家面试；offer 到手再提离职，体面且不亏。',
+  '今天就改简历，明天就投递。跑之前自查三件事：社保衔接、年假折算、未批报销。'
+];
+const ONE_LINERS=[
+  '工资准时到账的日子，先攒子弹再谈理想。',
+  '骑驴找马不丢人，裸辞才需要勇气可嘉。',
+  '天机难测，简历先备，去留随缘。',
+  '此处不留爷，自有留爷处。',
+  '跑得快，是世界第八大奇迹。'
+];
+const FACTOR={
+  money:['薪资的数字比良心还凉','钱包已发出求救信号'],
+  mood:['心情与加班遭受双重暴击','精神损耗已超出折旧范围'],
+  commute:['通勤之苦堪比每日铁人三项','通勤正在透支你的肉身'],
+  boss:['上峰画风过于清奇，久处伤身','老板之饼已高出天际线'],
+  grow:['成长性已提前退休','此处已学不到新本事'],
+  prospect:['公司前景一片迷雾','大船行驶方向不明，桅杆还漏']
+};
+const PRAISE={
+  money:'薪资按时到账且还算体面',
+  mood:'日子过得尚有滋味',
+  commute:'通勤近到能回家吃午饭',
+  boss:'老板竟属人间清醒一派',
+  grow:'手艺还在稳步见涨',
+  prospect:'大船还算稳当'
+};
+const RULINGS=[
+  ['本庭认为，{pgood}。饼虽不算大，好歹是实心的，此等境况人间已属难得。你的痛苦多半来自矫情，而非处境。',
+   '本庭认为，{pgood}。建议把想辞职的力气，先用来看懂工资条的构成——它目前比你想象的可靠。'],
+  ['本庭认为，现状有小恙而无大碍：{f}。跑路可以，但请骑驴找马，驴稳了再跳不迟。',
+   '本庭认为，{f}，尚在可忍受区间。宜递交涨薪申请试水，同时让简历保持常青。'],
+  ['本庭认为，去留各有其理，天机亦不敢妄断：{f}。唯一确定的是——手握 offer 的人，才有资格谈理想。',
+   '本庭认为，{f}，天平正在摇晃。宜骑驴找马，让市场替你重新定价。'],
+  ['本庭认为，{f}，此处已非久留之地。市场广阔，何苦吊死在一棵歪脖子树上。',
+   '本庭认为，{f}。你的忍耐精神可嘉，但股东不会为此给你分红。宜尽早启动跑路程序。'],
+  ['本庭认为，{f}，且已不满足《劳动法》与《做人》的双重底线。再留一日，都是对时薪的犯罪。',
+   '本庭认为，{f}。本庭本想委婉一点，但你的处境实在委婉不起来。即刻更新简历，先跑为敬。']
+];
+function readForm(){
+  return{
+    salary:+$('#salary').value, city:+(document.querySelector('input[name=city]:checked')||{value:1}).value,
+    commute:+$('#commute').value, ot:+$('#ot').value, mood:+$('#mood').value,
+    boss:+(document.querySelector('input[name=boss]:checked')||{value:0}).value,
+    grow:+$('#grow').value, prospect:+$('#prospect').value, offer:+$('#offer').value,
+    gq:+$('#gq').value, tp:+$('#tp').value, fz:+$('#fz').value,
+    rant:$('#rant').value.trim().slice(0,60)
+  };
+}
+function restoreForm(d){
+  $('#salary').value=d.salary;
+  [...document.querySelectorAll('input[name=city]')].forEach(i=>i.checked=+i.value===d.city);
+  $('#commute').value=d.commute; $('#ot').value=d.ot; $('#mood').value=d.mood;
+  [...document.querySelectorAll('input[name=boss]')].forEach(i=>i.checked=+i.value===d.boss);
+  $('#grow').value=d.grow; $('#prospect').value=d.prospect; $('#offer').value=d.offer;
+  $('#gq').value=d.gq; $('#tp').value=d.tp; $('#fz').value=d.fz; $('#rant').value=d.rant||'';
+  syncOutputs();
+}
+function judge(d){
+  const mk=1+(d.gq-50)/100, mt=1+(d.tp-50)/100, md=1+(d.fz-50)/100;
+  let w={money:38*mk,grow:17*md,mood:15*mt,commute:10*mt,boss:10*mt,prospect:10*md};
+  let sum=0;for(const k in w)sum+=w[k];for(const k in w)w[k]=w[k]*100/sum;
+  let moneyRun,offerDelta=null;
+  if(d.offer>0){const r=d.offer/d.salary;offerDelta=Math.round((r-1)*100);
+    moneyRun=r>=1.5?90:r>=1.3?78:r>=1.15?62:r>=1?48:30;}
+  else{const r=d.salary/CITY[d.city];moneyRun=clamp(55-(r-1)*50,5,95);}
+  const otRun=clamp(d.ot/5*100,0,100);
+  const runs={
+    money:moneyRun,
+    mood:0.6*(100-d.mood)+0.4*otRun,
+    commute:clamp(d.commute/2.5*100,0,100),
+    boss:100-BOSS[d.boss].s,
+    grow:100-d.grow,
+    prospect:100-d.prospect
+  };
+  let idx=0;for(const k in w)idx+=w[k]*runs[k];
+  idx=Math.round(clamp(idx/100,0,100));
+  const grade=idx<20?0:idx<40?1:idx<60?2:idx<80?3:4;
+  let top='money',tv=-1,tg='money',tgv=-1;
+  for(const k in w){const v=w[k]*runs[k];if(v>tv){tv=v;top=k;}
+    const g=w[k]*(100-runs[k]);if(g>tgv){tgv=g;tg=k;}}
+  return{
+    idx,grade,w,runs,top,topGood:tg,
+    hourly:d.salary/(22*(8+d.ot)),
+    hourlyPP:d.salary/(22*(8+d.ot))*CITY[1]/CITY[d.city],
+    commuteDays:Math.round(d.commute*2*250/24),
+    offerDelta,
+    stamp:GRADES[grade].stamp,color:GRADES[grade].color,gradeName:GRADES[grade].name
+  };
+}
+
+/* ==================== 决策日记 ==================== */
+const DKEY='shengcaiyuan_diary_v1';
+function loadDiary(){try{return JSON.parse(localStorage.getItem(DKEY))||[];}catch(e){return[];}}
+function saveDiary(list){try{localStorage.setItem(DKEY,JSON.stringify(list.slice(0,20)));}catch(e){}}
+function streakOfStay(){
+  let n=0;for(const e of loadDiary()){if(e.grade<=1)n++;else break;}return n;
+}
+const YI=['摸鱼','带薪如厕','准点下班','团建装忙','给简历续费','假装很忙'];
+const JI=['提离职','开长会','看工资条','回老板语音','改第 8 版 PPT','跟老板谈理想'];
+function almanac(){const h=dayHash();return `今日黄历：宜 ${YI[h%YI.length]} · 忌 ${JI[(h*7+3)%JI.length]}`;}
+$('#almanac').textContent=almanac();
+
+/* ==================== 幕间切换 ==================== */
+function goto(id){$$('.act').forEach(a=>a.classList.remove('on'));$('#'+id).classList.add('on');window.scrollTo(0,0);}
+
+/* ==================== 第零幕：封面开场 ==================== */
+const fx0=$('#fx0'),fx0x=fx0.getContext('2d');
+function fx0Size(){fx0.width=innerWidth;fx0.height=innerHeight;}
+addEventListener('resize',fx0Size);fx0Size();
+function bolt0(){boltOn(fx0,fx0x);}
+(function makeCoins(){
+  const c=$('#cover');
+  for(let i=0;i<12;i++){const s=document.createElement('span');s.className='fcoin';s.textContent='¥';
+    s.style.left=rand(2,97).toFixed(1)+'%';s.style.fontSize=rand(12,26).toFixed(0)+'px';
+    s.style.animationDuration=rand(7,15).toFixed(1)+'s';s.style.animationDelay=rand(0,10).toFixed(1)+'s';
+    c.appendChild(s);}
+})();
+addEventListener('pointerdown',()=>ac(),{once:true});
+(function coverIn(){
+  setTimeout(()=>{bolt0();sThunder();flash(.55,180);},280);
+  setTimeout(()=>{bolt0();sThunder();flash(.4,150);shake(300);},480);
+  setTimeout(()=>{sGavel();$('#plaque').classList.add('in');},560);
+  setTimeout(()=>$$('.couplet').forEach(c=>c.classList.add('in')),980);
+  setTimeout(()=>$('#plaqueSeal').classList.add('on'),1350);
+  setTimeout(()=>$('#coverSub').classList.add('in'),1550);
+  setTimeout(()=>$('#coverBtnWrap').classList.add('in'),1850);
+})();
+$('#enterBtn').addEventListener('click',()=>{
+  ac();sGavel();sDrum();sThunder();bolt0();flash(.95,260);shake(520);
+  setTimeout(()=>goto('act1'),190);
+});
+
+/* ==================== 主流程：开审 ==================== */
+let CURRENT=null;
+$('#startBtn').addEventListener('click',startTrial);
+async function startTrial(){
+  const data=readForm();
+  const res=judge(data);
+  CURRENT={data,res};
+  ac();
+  // 复位第二幕
+  termEl.textContent='';bigEl.className='';bigEl.style.opacity=0;scanEl.classList.remove('on');mystEl.classList.remove('on');fxClear();
+  goto('act2');
+  // 0-1s 惊堂木
+  sGavel();flash(0.9,220);shake(500);showBig('开 审 ！','#ffd23e');
+  await sleep(950);
+  // 1-4s 终端审理
+  const lines=[
+    '> 连接天庭档案库…… 已获取当事人卷宗',
+    `> 正在核实你司饼图层厚度…… ${BOSS[data.boss].n}老板，已记录在案`,
+    `> 正在计算真实时薪…… ¥${res.hourly.toFixed(1)} / 小时（已上报备案）`,
+    ...(data.city!=1?[`> 人间标定…… 按当地物价折合一线购买力 ¥${res.hourlyPP.toFixed(1)} / 小时`]:[]),
+    data.offer>0?`> 检测到手握 offer，涨幅 +${res.offerDelta}% …… 事态升级`:'> 未检测到下家…… 跑路风险自担，本庭提醒完毕',
+    '> 正在请示上庭大仙 …… '
+  ];
+  for(const ln of lines)await typeLine(ln,18);
+  // 3-5s 天雷
+  for(let i=0;i<3;i++){setTimeout(()=>{drawBolt();sThunder();shake(260);if(i===1)showBig('轰 ！','#bfe9ff');},i*520);}
+  await sleep(1700);
+  // 5-7s 金币：跑路档金币雨（钱在流失），苟住档金币堆山（家底殷实）
+  if(res.grade>=3){coinRain();sCoin();setTimeout(sCoin,500);}
+  else{coinPile();sCoin();}
+  await sleep(1750);
+  // 7-9s 悬念
+  termEl.style.opacity=0.15;scanEl.classList.add('on');mystEl.classList.add('on');
+  await sleep(1400);
+  // 9-10s 红章砸下 + 鬼畜慢放
+  scanEl.classList.remove('on');mystEl.classList.remove('on');termEl.style.opacity=1;
+  sGavel();flash(1,160);shake(420);
+  showBig(res.stamp,res.color);
+  sStamp();
+  await sleep(500);
+  bigEl.classList.remove('show');void bigEl.offsetWidth;bigEl.classList.add('ghost'); // 鬼畜慢放回放×2
+  await sleep(1550);
+  bigEl.classList.remove('ghost');
+  // 移步宣判堂
+  renderPaper(data,res);
+  goto('act3');
+  sStamp();
+}
+
+/* ==================== 第三幕：判决书 ==================== */
+function renderPaper(d,res){
+  $('#caseNo').textContent=`圣字〔${new Date().getFullYear()}〕第 ${Math.floor(rand(1000,9999))} 号`;
+  const g=res.grade;
+  const factor=g<=1?PRAISE[res.topGood]:pick(FACTOR[res.top]);
+  const ruling=pick(RULINGS[g]).replace('{f}',factor).replace('{pgood}',factor);
+  const stallNote=res.hourly<25?'——低于楼下煎饼摊主，本庭深表遗憾':'';
+  const extras=[];
+  if(d.rant)extras.push(`本庭亦注意到：当事人曾因「${d.rant}」而破防。此种委屈，天理昭昭，已记入卷宗。`);
+  if(BOSS[d.boss].n==='画饼型'&&d.mood<20)extras.push('附：饼图层厚度已超出本庭法槌丈量上限，特此警告后厨。');
+  if(g<=1&&streakOfStay()>=2)extras.push('另查：你已连续三次被判「苟住」。天庭善意提醒——苟是手段，不是人生。');
+  const h=dayHash(),yi=YI[h%YI.length],ji=JI[(h*7+3)%JI.length];
+  $('#vpBody').innerHTML=`
+    <div class="sec"><h4>一、本庭经审理查明</h4>
+      <ul>
+        <li>当事人月薪 <b>¥${fmt(d.salary)}</b>，月工作 22 天、日均 ${(8+d.ot).toFixed(1)} 小时，折算时薪约 <b>¥${res.hourly.toFixed(1)}</b>${d.city!=1?`（按人间购买力标定 ¥${res.hourlyPP.toFixed(1)}）`:''}${stallNote}。</li>
+        <li>通勤单程 <b>${d.commute.toFixed(2)} 小时</b>，按年 250 个工作日计，一年耗去约 <b>${res.commuteDays} 个整天</b>。</li>
+        <li>心情指数 <b>${d.mood}/100</b>，日均加班 <b>${d.ot.toFixed(1)} 小时</b>，现任老板经鉴定为「${BOSS[d.boss].n}」。</li>
+        ${d.offer>0?`<li>另查，当事人手持新 offer 月薪 <b>¥${fmt(d.offer)}</b>，较现状 <b>+${res.offerDelta}%</b>。</li>`:''}
+      </ul>
+    </div>
+    <div class="sec"><h4>二、本庭认为</h4><p>${ruling}</p></div>
+    <div class="sec"><h4>三、判决如下</h4>
+      <p class="vp-ruling" style="color:#8c1f14">${GRADES[g].name}</p>
+      <span class="vp-idx">跑路指数 ${res.idx} / 100</span>
+    </div>
+    <div class="sec"><h4>四、执行建议</h4><p>${ADVICE[g]}</p></div>
+    ${extras.map(e=>`<div class="sec"><p style="color:#7a5a2a">${e}</p></div>`).join('')}
+    <div class="sec"><h4>五、本日黄历</h4><p>宜 ${yi}，忌 ${ji}。</p></div>
+    <div class="vp-foot sec"><span>审判长：五毛大仙</span><span>书记员：像素小妖</span><span>本判决为终审判决</span></div>`;
+  const paper=$('#paper');
+  paper.classList.remove('drop');void paper.offsetWidth;paper.classList.add('drop');
+  const seal=$('#seal');seal.classList.remove('on');
+  const secs=$$('#vpBody .sec');
+  secs.forEach(s=>s.classList.remove('shown'));
+  (function reveal(i){
+    if(i<secs.length){setTimeout(()=>{secs[i].classList.add('shown');reveal(i+1);},420);}
+    else setTimeout(()=>{seal.classList.add('on');sStamp();},250);
+  })(0);
+  // 存入日记
+  const list=loadDiary();
+  list.unshift({t:Date.now(),grade:g,idx:res.idx,line:ONE_LINERS[g],snap:d});
+  saveDiary(list);
+}
+$('#toAct4').addEventListener('click',()=>{renderPoster(CURRENT.data,CURRENT.res);renderDiary();goto('act4');});
+
+/* ==================== 第四幕：海报 + 日记 ==================== */
+function wrapText(x,text,cx,y,maxW,lh){let line='',yy=y;
+  for(const ch of text){if(x.measureText(line+ch).width>maxW){x.fillText(line,cx,yy);yy+=lh;line=ch;}else line+=ch;}
+  if(line){x.fillText(line,cx,yy);yy+=lh;}return yy;}
+function renderPoster(d,res){
+  const c=$('#poster'),x=c.getContext('2d'),W=c.width,H=c.height;
+  const g=res.grade,G=GRADES[g];
+  x.clearRect(0,0,W,H);
+  x.fillStyle='#0f0f15';x.fillRect(0,0,W,H);
+  x.strokeStyle='#d9b45a';x.lineWidth=3;x.strokeRect(26,26,W-52,H-52);
+  x.lineWidth=1;x.strokeRect(40,40,W-80,H-80);
+  [[52,52],[W-52,52],[52,H-52],[W-52,H-52]].forEach(p=>{x.fillStyle='#d9b45a';x.fillRect(p[0]-5,p[1]-5,10,10);});
+  x.textAlign='center';
+  x.shadowColor='#ff8800';x.shadowBlur=26;
+  x.fillStyle='#ffd23e';x.font='900 88px KaiTi,"STKaiti",serif';x.fillText('打工圣裁院',W/2,150);
+  x.shadowBlur=0;
+  x.fillStyle='#f5efdc';x.font='28px KaiTi,"STKaiti",serif';x.fillText('· 终 审 判 决 书 ·',W/2,205);
+  x.strokeStyle='#d9b45a';x.beginPath();x.moveTo(120,238);x.lineTo(W-120,238);x.stroke();
+  x.fillStyle=G.color;x.font='900 54px KaiTi,"STKaiti",serif';
+  x.shadowColor=G.color;x.shadowBlur=18;x.fillText(G.name,W/2,330);x.shadowBlur=0;
+  x.fillStyle='#8f8a76';x.font='22px "PingFang SC","Microsoft YaHei",sans-serif';x.fillText('跑 路 指 数',W/2,410);
+  x.fillStyle='#ffd23e';x.font='900 104px "Segoe UI",sans-serif';
+  x.shadowColor='#ff8800';x.shadowBlur=22;x.fillText(String(res.idx),W/2,520);x.shadowBlur=0;
+  // 红印章
+  x.save();x.translate(W-165,660);x.rotate(-0.22);
+  x.strokeStyle='rgba(210,40,30,.9)';x.lineWidth=9;x.beginPath();x.arc(0,0,105,0,7);x.stroke();
+  x.lineWidth=2;x.beginPath();x.arc(0,0,84,0,7);x.stroke();
+  x.fillStyle='rgba(210,40,30,.92)';x.font='900 96px KaiTi,"STKaiti",serif';x.fillText(G.stamp,0,26);
+  x.font='700 20px KaiTi,"STKaiti",serif';x.fillText('圣 裁 院 印',0,-52);x.restore();
+  x.fillStyle='#f0ead6';x.font='30px KaiTi,"STKaiti",serif';
+  wrapText(x,'「 '+ONE_LINERS[g]+' 」',W/2,780,540,48);
+  x.fillStyle='#9a927b';x.font='21px "PingFang SC",sans-serif';x.fillText('宣判于 '+dateStr(),W/2,896);
+  x.fillStyle='#6f6a58';x.font='18px "PingFang SC",sans-serif';
+  x.fillText('本庭不承担任何人生后果 · 薪资已匿名 · 五毛特效出品',W/2,936);
+}
+$('#dlPoster').addEventListener('click',()=>{
+  const a=document.createElement('a');
+  a.download='打工圣裁院-判决海报.png';
+  a.href=$('#poster').toDataURL('image/png');
+  a.click();
+});
+$('#again').addEventListener('click',()=>goto('act1'));
+function renderDiary(){
+  const list=loadDiary(),el=$('#diaryList');
+  if(!list.length){el.innerHTML='<p class="d-empty">暂无存档 —— 快去领你的第一份判决。</p>';return;}
+  el.innerHTML=list.map((e,i)=>{
+    const d=new Date(e.t),ds=`${d.getMonth()+1}/${d.getDate()}`;
+    return`<div class="d-item">
+      <span class="d-date">${ds}</span>
+      <span class="d-badge" style="background:${GRADES[e.grade].color}">${GRADES[e.grade].name}</span>
+      <span class="d-quote">指数 ${e.idx} · ${e.line}</span>
+      <button class="d-again" data-i="${i}">翻案</button>
+    </div>`;}).join('');
+  el.querySelectorAll('.d-again').forEach(btn=>btn.addEventListener('click',()=>{
+    const e=loadDiary()[+btn.dataset.i];
+    if(e&&e.snap){restoreForm(e.snap);goto('act1');}
+  }));
+}
+function syncOutputs(){
+  $('#vSalary').textContent='¥'+fmt($('#salary').value);
+  $('#vCommute').textContent=(+$('#commute').value).toFixed(2)+' 小时';
+  $('#vOt').textContent=(+$('#ot').value).toFixed(1)+' 小时';
+  $('#vMood').textContent=$('#mood').value+' / 100';
+  $('#vGrow').textContent=$('#grow').value+' / 100';
+  $('#vProspect').textContent=$('#prospect').value+' / 100';
+  const ov=+$('#offer').value;
+  $('#vOffer').textContent=ov?('¥'+fmt(ov)):'没有（0）';
+  $('#vGq').textContent=$('#gq').value;
+  $('#vTp').textContent=$('#tp').value;
+  $('#vFz').textContent=$('#fz').value;
+}
+['salary','commute','ot','mood','grow','prospect','offer','gq','tp','fz'].forEach(id=>{
+  $('#'+id).addEventListener('input',syncOutputs);
+});
+syncOutputs();
+</script>
+</body>
+</html>
